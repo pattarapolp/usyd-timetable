@@ -73,10 +73,6 @@
       width: 80px;
     }
 
-    td.filled {
-      background: #e8f0ff;
-    }
-
     .login {
       position: fixed;
       top: 0;
@@ -138,10 +134,30 @@
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const startHour = 8;
   const endHour = 20;
-  const interval = 30; // minutes
+  const interval = 30;
 
   let currentWeek = 1;
   let user = null;
+
+  // ===== SUBJECT COLOR SYSTEM =====
+  function getSubjectColors() {
+    return JSON.parse(localStorage.getItem(`${user}-subjectColors`) || '{}');
+  }
+
+  function saveSubjectColors(colors) {
+    localStorage.setItem(`${user}-subjectColors`, JSON.stringify(colors));
+  }
+
+  function getColorForSubject(subject) {
+    const colors = getSubjectColors();
+    if (colors[subject]) return colors[subject];
+
+    const hue = Math.floor(Math.random() * 360);
+    const color = `hsl(${hue}, 70%, 85%)`;
+    colors[subject] = color;
+    saveSubjectColors(colors);
+    return color;
+  }
 
   function buildTable() {
     const table = document.getElementById('timetable');
@@ -161,6 +177,7 @@
     for (let h = startHour; h < endHour; h++) {
       for (let m = 0; m < 60; m += interval) {
         const row = document.createElement('tr');
+
         const timeCell = document.createElement('td');
         timeCell.className = 'time';
         timeCell.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
@@ -173,7 +190,7 @@
 
           if (saved) {
             cell.textContent = saved;
-            cell.classList.add('filled');
+            cell.style.backgroundColor = getColorForSubject(saved);
           }
 
           cell.onclick = () => editCell(cell, key);
@@ -191,11 +208,11 @@
 
     if (value.trim() === '') {
       cell.textContent = '';
-      cell.classList.remove('filled');
+      cell.style.backgroundColor = '';
       localStorage.removeItem(key);
     } else {
       cell.textContent = value;
-      cell.classList.add('filled');
+      cell.style.backgroundColor = getColorForSubject(value);
       localStorage.setItem(key, value);
     }
   }
